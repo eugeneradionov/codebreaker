@@ -8,12 +8,18 @@ module Codebreaker
       4.times { @secret_code << rand(1..6).to_s }
     end
 
-    def get_number
+    def menu
+      puts "1.Start\n"\
+           "0.Exit\n"
+    end
+
+    def enter_number
+      puts 'Please enter your number'
       @input = gets.chomp[/^[1-6]{4}$/]
 
       unless @input =~ /[1-6]{4}/
         puts 'Please enter one four-digit number which consist of numbers from 1 to 6.'
-        get_number
+        enter_number
       end
     end
 
@@ -31,5 +37,19 @@ module Codebreaker
       return 1 if str == '++++'
       str
     end
+
+    def play
+      menu
+      choice = gets.chomp[/\d/]
+      return nil if choice.to_i.zero?
+
+      @attempts = 6
+      @attempts.times do
+        enter_number
+        return 1 if check == 1
+      end
+      return -1
+    end
+
   end
 end

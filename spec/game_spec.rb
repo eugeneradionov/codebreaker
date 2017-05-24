@@ -69,10 +69,7 @@ module Codebreaker
         game.play
       end
 
-      it 'should exit when choice 0' do
-        allow(game).to receive(:gets).and_return('0')
-        expect(game.play).to eq(nil)
-      end
+      it 'should exit when choice 0'
 
       it 'has more than 0 attempts' do
         allow(game).to receive(:gets).and_return('1')
@@ -99,6 +96,66 @@ module Codebreaker
         allow(game).to receive(:gets).and_return('1')
         allow(game).to receive(:gets).and_return('1234')
         expect(game.play.class).to eq(Integer)
+      end
+    end
+
+    context '#go' do
+      let(:game) { Game.new }
+
+      before do
+        allow(game).to receive(:puts) { 'Win/lose message' }
+      end
+
+      it 'calls play' do
+        expect(game).to receive(:play)
+        game.play
+      end
+
+      it 'calls again?' do
+        expect(game).to receive(:again?)
+        game.again?
+      end
+    end
+
+    context '#save_score' do
+      let(:file) { 'file.txt' }
+      let(:game) { Game.new }
+      before { File.new(file, 'w') }
+      after { File.delete(file) }
+
+      it 'writes name and score to the file' do
+        game.instance_variable_set(:@attempts_used, 5)
+        game.instance_variable_set(:@attempts, 6)
+        game.save_score('Test user', file)
+        expect(File.zero?(file)).to be false
+      end
+    end
+
+    context '#again?' do
+      let(:game) { Game.new }
+
+      before do
+        allow(game).to receive(:puts) { 'Do you want to play again?(y/n/s)' }
+      end
+
+      it 'calls go when input is y' do
+        allow(game).to receive(:gets) { 'y' }
+        expect(game).to receive(:go)
+        game.go
+      end
+
+      it 'should exit when input is n'
+
+      it 'saves score when input is s' do
+        allow(game).to receive(:gets) { 's' }
+        expect(game).to receive(:save_score)
+        game.save_score
+      end
+
+      it 'saves score and exit when input is different' do
+        allow(game).to receive(:gets) { 'h' }
+        expect(game).to receive(:save_score)
+        game.save_score
       end
     end
 

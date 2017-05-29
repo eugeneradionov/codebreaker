@@ -2,6 +2,7 @@ module Codebreaker
   class Game
     def initialize
       @secret_code = ''
+      @hints = []
     end
 
     def start
@@ -15,10 +16,28 @@ module Codebreaker
 
     def enter_number
       puts 'Please enter your number'
-      @input = gets.chomp[/^[1-6]{4}$/]
+      @input = gets.chomp
+      @input = @input[/^h$/] || @input[/^[1-6]{4}$/]
 
-      unless @input =~ /[1-6]{4}/
+      if @input =~ /^h$/
+        hint
+        return
+      end
+
+      unless @input =~ /^[1-6]{4}$/
         puts 'Please enter one four-digit number which consist of numbers from 1 to 6.'
+        enter_number
+      end
+    end
+
+    def hint
+      number = @secret_code[rand(4)]
+
+      if @hints.include? number
+        hint
+      else
+        @hints << number
+        puts "One of the numbers is: #{number}"
         enter_number
       end
     end
@@ -41,10 +60,11 @@ module Codebreaker
     def play
       start
       menu
-      choice = gets.chomp[/\d/]
+      choice = gets.chomp[/[10]/]
       exit(0) if choice.to_i.zero?
+      puts 'You can use hint by typing h.'
 
-      @attempts = 6
+      @attempts = 5
       @attempts_used = 0
       @attempts.times do
         enter_number
@@ -61,26 +81,24 @@ module Codebreaker
 
       case choice
         when 'y'
+          @secret_code = ''
           go
         when 'n'
-          puts 'Bye!'
-          sleep(0.5)
-          exit 0
+          bye
         when 's'
           puts 'What is your name?'
           name = gets.chomp
           save_score(name)
+          again?
         else
           save_score
           puts 'Your score was saved.'
-          puts 'Bye!'
-          sleep(0.3)
-          exit 0
+          bye
       end
     end
 
     def save_score(name = 'Unknown', file_name = 'codebreaker_score.txt')
-      score = (@attempts_used.to_f / @attempts * 100).round(2)
+      score = (1 / (@attempts_used.to_f / @attempts * 100)).round(2)
       File.new(file_name, 'w') unless File.exist?(file_name)
       File.open(file_name, 'w') do |file|
         file.write("CODEBREAKER SCORE\n")
@@ -90,6 +108,7 @@ module Codebreaker
     end
 
     def go
+      puts "\tWelcome to CODEBREAKER"
       if play > 0
         puts 'You won!'
       else
@@ -97,6 +116,12 @@ module Codebreaker
       end
 
       again?
+    end
+
+    def bye
+      puts 'Bye!'
+      sleep(0.25)
+      exit 0
     end
   end
 end

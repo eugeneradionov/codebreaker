@@ -2,8 +2,9 @@ require 'spec_helper'
 
 module Codebreaker
   RSpec.describe Game do
+
+    let(:game) { Game.new }
     context '#start' do
-      let(:game) { Game.new }
 
       before do
         game.start
@@ -23,7 +24,6 @@ module Codebreaker
     end
 
     context '#enter_number' do
-      let(:game) { Game.new }
 
       before do
         allow(game).to receive(:gets).and_return('1234')
@@ -37,11 +37,10 @@ module Codebreaker
     end
 
     context '#check' do
-      let(:game) { Game.new }
 
       before do
-        allow(game).to receive(:gets).and_return('1234')
         allow(game).to receive(:puts) { 'Please enter your number' }
+        allow(game).to receive(:gets).and_return('1234')
         game.enter_number
       end
 
@@ -57,50 +56,45 @@ module Codebreaker
     end
 
     context '#play' do
-      let(:game) { Game.new }
 
       before do
         allow(game).to receive(:puts).and_return('Menu')
+        allow(game).to receive(:gets).and_return('1')
+        allow(game).to receive(:gets).and_return('1234')
       end
 
       it 'plays when choice 1' do
-        allow(game).to receive(:gets).and_return('1')
-        allow(game).to receive(:gets).and_return('1234')
+        expect(game).to receive(:play)
         game.play
       end
 
       it 'should exit when choice 0'
 
       it 'has more than 0 attempts' do
-        allow(game).to receive(:gets).and_return('1')
-        allow(game).to receive(:gets).and_return('1234')
+        game.instance_variable_set(:@secret_code, '1234')
         game.play
         expect(game.instance_variable_get(:@attempts)).to be > 0
       end
 
-      it 'looses when attempts is over' do
-        allow(game).to receive(:gets).and_return('1')
-        allow(game).to receive(:gets).and_return('1234')
-        game.instance_variable_set(:@secret_code, '4321')
-        expect(game.play).to eq(-1)
-      end
-
-      it 'wins when secret code exactly guessed' do
-        allow(game).to receive(:gets).and_return('1')
-        allow(game).to receive(:gets).and_return('1234')
+      it 'wins when secret code exactly guessed', :win do
         game.instance_variable_set(:@secret_code, '1234')
         expect(game.play).to eq(1)
       end
 
+      it 'looses when attempts is over' do
+        game.instance_variable_set(:@secret_code, '4321')
+        expect(game.play).to eq(-1)
+      end
+
       it 'ends either win or loose' do
-        allow(game).to receive(:gets).and_return('1')
-        allow(game).to receive(:gets).and_return('1234')
+        game.instance_variable_set(:@secret_code, '1234')
+        expect(game.play.class).to eq(Integer)
+        game.instance_variable_set(:@secret_code, '4321')
         expect(game.play.class).to eq(Integer)
       end
     end
 
     context '#go' do
-      let(:game) { Game.new }
 
       before do
         allow(game).to receive(:puts) { 'Win/lose message' }
@@ -119,7 +113,6 @@ module Codebreaker
 
     context '#save_score' do
       let(:file) { 'file.txt' }
-      let(:game) { Game.new }
       before { File.new(file, 'w') }
       after { File.delete(file) }
 
@@ -132,7 +125,6 @@ module Codebreaker
     end
 
     context '#again?' do
-      let(:game) { Game.new }
 
       before do
         allow(game).to receive(:puts) { 'Do you want to play again?(y/n/s)' }
@@ -156,6 +148,37 @@ module Codebreaker
         allow(game).to receive(:gets) { 'h' }
         expect(game).to receive(:save_score)
         game.save_score
+        # game.bye
+      end
+    end
+
+    context '#hint' do
+      before do
+        game.instance_variable_set(:@secret_code, '1234')
+      end
+
+      context 'when number is already shown' do
+
+        before do
+          game.instance_variable_set(:@hint, ['1'])
+        end
+
+        it 'calls hint' do
+          expect(game).to receive(:hint)
+          game.hint
+        end
+      end
+
+      context "when number isn't shown yet" do
+        it 'adds chosen number to hints array' do
+          hint = game.instance_variable_get(:@hints) << '1'
+          expect(hint).to eq(['1'])
+        end
+
+        it 'calls enter_number' do
+          expect(game).to receive(:enter_number)
+          game.enter_number
+        end
       end
     end
 

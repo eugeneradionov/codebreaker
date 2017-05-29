@@ -61,7 +61,7 @@ module Codebreaker
       start
       menu
       choice = gets.chomp[/[10]/]
-      exit(0) if choice.to_i.zero?
+      bye if choice.to_i.zero?
       puts 'You can use hint by typing h.'
 
       @attempts = 5

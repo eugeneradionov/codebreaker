@@ -10,16 +10,8 @@ module Codebreaker
         game.start
       end
 
-      it 'generates secret code' do
-        expect(game.instance_variable_get(:@secret_code)).not_to be_empty
-      end
-
-      it 'saves 4 numbers secret code' do
-        expect(game.instance_variable_get(:@secret_code).length).to eq(4)
-      end
-
       it 'saves secret code with numbers from 1 to 6' do
-        expect(game.instance_variable_get(:@secret_code)).to match(/[1-6]{4}/)
+        expect(game.instance_variable_get(:@secret_code)).to match(/^[1-6]{4}$/)
       end
     end
 
@@ -44,31 +36,41 @@ module Codebreaker
         game.enter_number
       end
 
-      it 'when did not guessed exactly' do
-        game.instance_variable_set(:@secret_code, '4321')
-        expect(game.check).to match(/^[+-]*$/)
+      context 'when did not guessed exactly' do
+        it 'returns string of +-' do
+          game.instance_variable_set(:@secret_code, '4321')
+          expect(game.check).to match(/^[+-]*$/)
+        end
       end
 
-      it 'when exactly guessed' do
-        game.instance_variable_set(:@secret_code, '1234')
-        expect(game.check).to eq(1)
+      context 'when exactly guessed' do
+        it 'returns 1' do
+          game.instance_variable_set(:@secret_code, '1234')
+          expect(game.check).to eq(1)
+        end
       end
     end
 
     context '#play' do
-
       before do
         allow(game).to receive(:puts).and_return('Menu')
         allow(game).to receive(:gets).and_return('1')
         allow(game).to receive(:gets).and_return('1234')
       end
 
-      it 'plays when choice 1' do
-        expect(game).to receive(:play)
-        game.play
+      context 'when choice is 1' do
+        it 'plays' do
+          expect(game).to receive(:play)
+          game.play
+        end
       end
 
-      it 'should exit when choice 0'
+      context 'when choice is 0' do
+        it 'should exit' do
+          expect(game).to receive(:bye)
+          game.bye
+        end
+      end
 
       it 'has more than 0 attempts' do
         game.instance_variable_set(:@secret_code, '1234')
@@ -76,26 +78,31 @@ module Codebreaker
         expect(game.instance_variable_get(:@attempts)).to be > 0
       end
 
-      it 'wins when secret code exactly guessed', :win do
-        game.instance_variable_set(:@secret_code, '1234')
-        expect(game.play).to eq(1)
+      context 'when secret code exactly guessed' do
+        it 'wins' do
+          game.instance_variable_set(:@secret_code, '1234')
+          expect(game.play).to eq(1)
+        end
       end
 
-      it 'looses when attempts is over' do
-        game.instance_variable_set(:@secret_code, '4321')
-        expect(game.play).to eq(-1)
+      context 'when attempts is over' do
+        it 'looses' do
+          game.instance_variable_set(:@secret_code, '4321')
+          expect(game.play).to eq(-1)
+        end
       end
 
-      it 'ends either win or loose' do
-        game.instance_variable_set(:@secret_code, '1234')
-        expect(game.play.class).to eq(Integer)
-        game.instance_variable_set(:@secret_code, '4321')
-        expect(game.play.class).to eq(Integer)
+      context 'either win or loose' do
+        it 'ends' do
+          game.instance_variable_set(:@secret_code, '1234')
+          expect(game.play.class).to eq(Integer)
+          game.instance_variable_set(:@secret_code, '4321')
+          expect(game.play.class).to eq(Integer)
+        end
       end
     end
 
     context '#go' do
-
       before do
         allow(game).to receive(:puts) { 'Win/lose message' }
       end
@@ -125,30 +132,41 @@ module Codebreaker
     end
 
     context '#again?' do
-
       before do
         allow(game).to receive(:puts) { 'Do you want to play again?(y/n/s)' }
       end
 
-      it 'calls go when input is y' do
-        allow(game).to receive(:gets) { 'y' }
-        expect(game).to receive(:go)
-        game.go
+      context 'when input is y' do
+        it 'calls go' do
+          allow(game).to receive(:gets) { 'y' }
+          expect(game).to receive(:go)
+          game.go
+        end
       end
 
-      it 'should exit when input is n'
-
-      it 'saves score when input is s' do
-        allow(game).to receive(:gets) { 's' }
-        expect(game).to receive(:save_score)
-        game.save_score
+      context 'when input is n' do
+        it 'should exit' do
+          expect(game).to receive(:bye)
+          game.bye
+        end
       end
 
-      it 'saves score and exit when input is different' do
-        allow(game).to receive(:gets) { 'h' }
-        expect(game).to receive(:save_score)
-        game.save_score
-        # game.bye
+      context 'when input is s' do
+        it 'saves score' do
+          allow(game).to receive(:gets) { 's' }
+          expect(game).to receive(:save_score)
+          game.save_score
+        end
+      end
+
+      context 'when input is different' do
+        it 'saves score and exit' do
+          allow(game).to receive(:gets) { 'm' }
+          expect(game).to receive(:save_score)
+          game.save_score
+          expect(game).to receive(:bye)
+          game.bye
+        end
       end
     end
 
@@ -158,7 +176,6 @@ module Codebreaker
       end
 
       context 'when number is already shown' do
-
         before do
           game.instance_variable_set(:@hint, ['1'])
         end
@@ -181,6 +198,5 @@ module Codebreaker
         end
       end
     end
-
   end
 end

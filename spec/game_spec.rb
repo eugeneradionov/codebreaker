@@ -5,7 +5,6 @@ module Codebreaker
 
     let(:game) { Game.new }
     context '#start' do
-
       before do
         game.start
       end
@@ -16,7 +15,6 @@ module Codebreaker
     end
 
     context '#enter_number' do
-
       before do
         allow(game).to receive(:gets).and_return('1234')
         allow(game).to receive(:puts) { 'Please enter your number' }
@@ -29,7 +27,6 @@ module Codebreaker
     end
 
     context '#check' do
-
       before do
         allow(game).to receive(:puts) { 'Please enter your number' }
         allow(game).to receive(:gets).and_return('1234')

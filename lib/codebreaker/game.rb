@@ -7,6 +7,7 @@ module Codebreaker
 
     def start
       4.times { @secret_code << rand(1..6).to_s }
+      @hints = []
     end
 
     def menu
@@ -21,7 +22,7 @@ module Codebreaker
 
       if @input =~ /^h$/ && @hints.size < 4
         hint
-      else
+      elsif @hints.size == 4
         puts "You have used all hints. The number is #{@secret_code}."
       end
 
@@ -100,12 +101,12 @@ module Codebreaker
     end
 
     def save_score(name = 'Unknown', file_name = 'codebreaker_score.txt')
-      score = (1 / (@attempts_used.to_f / @attempts * 100)).round(2)
+      score = (@attempts - @attempts_used) * 1000 + 1000
       File.new(file_name, 'w') unless File.exist?(file_name)
       File.open(file_name, 'w') do |file|
         file.write("CODEBREAKER SCORE\n")
         file.write("Name: #{name}\n")
-        file.write("Score: #{score}%\n")
+        file.write("Score: #{score}\n")
       end
     end
 

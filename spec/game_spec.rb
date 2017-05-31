@@ -174,7 +174,9 @@ module Codebreaker
 
       context 'when number is already shown' do
         before do
-          game.instance_variable_set(:@hint, ['1'])
+          index = 2
+          secret_code = game.instance_variable_get(:@secret_code)
+          game.instance_variable_set(:@hint, secret_code[index])
         end
 
         it 'calls hint' do
@@ -185,8 +187,8 @@ module Codebreaker
 
       context "when number isn't shown yet" do
         it 'adds chosen number to hints array' do
-          hint = game.instance_variable_get(:@hints) << '1'
-          expect(hint).to eq(['1'])
+          hint = game.instance_variable_get(:@hints) << 2
+          expect(hint).to eq([2])
         end
 
         it 'calls enter_number' do

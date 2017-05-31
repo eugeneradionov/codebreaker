@@ -19,9 +19,10 @@ module Codebreaker
       @input = gets.chomp
       @input = @input[/^h$/] || @input[/^[1-6]{4}$/]
 
-      if @input =~ /^h$/
+      if @input =~ /^h$/ && @hints.size < 4
         hint
-        return
+      else
+        puts "You have used all hints. The number is #{@secret_code}."
       end
 
       unless @input =~ /^[1-6]{4}$/
@@ -31,12 +32,13 @@ module Codebreaker
     end
 
     def hint
-      number = @secret_code[rand(4)]
+      index = rand(4)
+      number = @secret_code[index]
 
-      if @hints.include? number
+      if @hints.include? index
         hint
       else
-        @hints << number
+        @hints << index
         puts "One of the numbers is: #{number}"
         enter_number
       end

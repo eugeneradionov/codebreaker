@@ -1,33 +1,32 @@
 module Codebreaker
+  require_relative 'ui'
+
+  INPUT_REGEX = /^[1-6]{4}$/
+  HINT_REGEX = /^h$/
   class Game
+    ATTEMPTS = 5
     def initialize
-      @secret_code = ''
       @hints = []
     end
 
     def start
-      4.times { @secret_code << rand(1..6).to_s }
+      @secret_code = Array.new(4) { rand(1..6) }
       @hints = []
     end
 
-    def menu
-      puts "1.Start\n"\
-           "0.Exit\n"
-    end
-
     def enter_number
-      puts 'Please enter your number'
-      @input = gets.chomp
-      @input = @input[/^h$/] || @input[/^[1-6]{4}$/]
+      @input = UI.enter_number
+      @input = @input[HINT_REGEX] || @input[INPUT_REGEX]
 
-      if @input =~ /^h$/ && @hints.size < 4
+      if @input =~ HINT_REGEX && @hints.size < 4
         hint
       elsif @hints.size == 4
-        puts "You have used all hints. The number is #{@secret_code}."
+        UI.all_hints_used(@secret_code.join)
+        again?
       end
 
-      unless @input =~ /^[1-6]{4}$/
-        puts 'Please enter one four-digit number which consist of numbers from 1 to 6.'
+      unless @input =~ INPUT_REGEX || HINT_REGEX
+        UI.invalid_input
         enter_number
       end
     end
@@ -40,91 +39,81 @@ module Codebreaker
         hint
       else
         @hints << index
-        puts "One of the numbers is: #{number}"
+        UI.hint(number)
         enter_number
       end
     end
 
     def check
-      secret_array = @secret_code.split('').map(&:to_i)
       input_array = @input.split('').map(&:to_i)
+      return '++++' if input_array == @secret_code
 
-      str = ''
-      secret_array.each_index do |i|
-        str << '-' if secret_array.include? input_array[i]
-        str[i] = '+' if secret_array[i] == input_array[i]
+      zipped = @secret_code.zip(input_array).delete_if { |el| el[0] == el[1] }
+      pluses = @secret_code.size - zipped.size
+
+      zipped = zipped.transpose
+      secret_array = zipped[0]
+      input_array = zipped[1]
+
+      input_array.each do |el|
+        secret_array.delete_at(secret_array.index(el)) if secret_array.include? el
       end
-      str = str.chars.sort.join
+      minuses = @secret_code.size - pluses - secret_array.size
 
-      return 1 if str == '++++'
-      str
+      '+' * pluses + '-' * minuses
     end
 
     def play
       start
-      menu
-      choice = gets.chomp[/[10]/]
-      bye if choice.to_i.zero?
-      puts 'You can use hint by typing h.'
+      UI.choice
+      UI.won_or_lost?(attempt)
+      again?
+    end
 
-      @attempts = 5
+    def go
+      UI.caption
+      play
+    end
+
+    def attempt
       @attempts_used = 0
-      @attempts.times do
+      ATTEMPTS.times do
         enter_number
         @attempts_used += 1
-        return 1 if check == 1
-        puts check
+        check_result = check
+        return 1 if check_result == '++++'
+        puts check_result
       end
       return -1
     end
 
     def again?
-      puts 'Do you want to play again(y or n) or save score(s)?'
-      choice = gets.chomp.downcase[/^[yns]/]
+      choice = UI.again
 
       case choice
         when 'y'
-          @secret_code = ''
-          go
+          play
         when 'n'
-          bye
+          UI.bye
         when 's'
-          puts 'What is your name?'
-          name = gets.chomp
+          name = UI.ask_name
           save_score(name)
           again?
         else
           save_score
-          puts 'Your score was saved.'
-          bye
+          UI.score_saved
+          UI.bye
       end
     end
 
     def save_score(name = 'Unknown', file_name = 'codebreaker_score.txt')
-      score = (@attempts - @attempts_used) * 1000 + 1000
+      score = (ATTEMPTS - @attempts_used) * 1000 + 1000
       File.new(file_name, 'w') unless File.exist?(file_name)
       File.open(file_name, 'w') do |file|
         file.write("CODEBREAKER SCORE\n")
         file.write("Name: #{name}\n")
         file.write("Score: #{score}\n")
       end
-    end
-
-    def go
-      puts "\tWelcome to CODEBREAKER"
-      if play > 0
-        puts 'You won!'
-      else
-        puts 'You lost!'
-      end
-
-      again?
-    end
-
-    def bye
-      puts 'Bye!'
-      sleep(0.25)
-      exit 0
     end
   end
 end

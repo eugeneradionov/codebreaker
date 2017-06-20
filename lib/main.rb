@@ -1,4 +1,4 @@
-require_relative 'codebreaker'
+require_relative 'codebreaker/ui'
 
-game = Codebreaker::Game.new
-game.go
+ui = Codebreaker::UI.new
+ui.go

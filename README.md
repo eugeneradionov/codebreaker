@@ -24,8 +24,8 @@ Or install it yourself as:
 
 ```ruby
 require 'codebreaker'
-game = Codebreaker::Game.new
-game.go
+ui = Codebreaker::UI.new
+ui.go
 ```
 
 ## License
